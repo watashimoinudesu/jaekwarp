@@ -2,6 +2,7 @@ import { createClient } from "@supabase/supabase-js";
 import { randomUUID } from "crypto";
 
 import { CAPTION_MAX_CHARS } from "@/lib/caption";
+import { ensureCurrentShowing } from "@/lib/display-queue-server";
 import {
   isSocialPlatform,
   sanitizeLatinHandle,
@@ -72,6 +73,7 @@ export async function POST(req: Request) {
         social_platform: socialPlatform,
         social_handle: socialPlatform ? socialHandle : null,
         ig_username: igUsernameForLegacy,
+        display_status: "pending",
       });
 
     if (insertError) {
@@ -90,32 +92,20 @@ export async function POST(req: Request) {
   }
 }
 
-// 🔥 GET
+// 🔥 GET — คิวเดียวกับ /api/display (รองรับของเก่าที่เรียก /api/upload)
 export async function GET() {
   try {
-    const supabase = createClient(
+    const client = createClient(
       process.env.SUPABASE_URL!,
       process.env.SUPABASE_SERVICE_ROLE_KEY!
     );
-
-    const { data, error } = await supabase
-      .from("uploads")
-      .select("*")
-      .order("created_at", { ascending: false })
-      .limit(1);
-
-    if (error) throw error;
-
+    const row = await ensureCurrentShowing(client);
     return Response.json({
       success: true,
-      data,
+      data: row ? [row] : [],
     });
-
   } catch (err) {
     console.error(err);
-    return Response.json(
-      { error: "Fetch failed" },
-      { status: 500 }
-    );
+    return Response.json({ error: "Fetch failed" }, { status: 500 });
   }
 }

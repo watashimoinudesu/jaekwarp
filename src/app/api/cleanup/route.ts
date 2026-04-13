@@ -27,6 +27,7 @@ export async function GET(req: Request) {
     const { error } = await supabase
       .from("uploads")
       .delete()
+      .eq("display_status", "done")
       .lt("created_at", cutoffTime);
 
     if (error) throw error;
