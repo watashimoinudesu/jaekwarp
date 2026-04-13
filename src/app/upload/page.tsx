@@ -147,7 +147,16 @@ export default function UploadPage() {
             </label>
           ) : !file ? (
             <div className="flex flex-col gap-4">
-              <div className="relative mx-auto aspect-9/16 w-full max-w-[min(100%,360px)] overflow-hidden rounded-xl bg-zinc-900">
+              {/*
+                จำกัดความสูงตามจอ (dvh) — ถ้าใช้แค่ aspect + w-full บนมือถือกล่องจะสูงเกินจอ ลากครอบไม่ได้ / เลื่อนชนเบราว์เซอร์
+              */}
+              <div
+                className="relative mx-auto w-full max-w-full select-none overflow-hidden rounded-xl bg-zinc-900 [-webkit-touch-callout:none]"
+                style={{
+                  height: "min(72dvh, 560px)",
+                  width: "min(100%, calc(min(72dvh, 560px) * 9 / 16))",
+                }}
+              >
                 <Cropper
                   image={imageSrc}
                   crop={crop}
@@ -158,10 +167,17 @@ export default function UploadPage() {
                   onCropChange={setCrop}
                   onZoomChange={setZoom}
                   onCropComplete={onCropComplete}
+                  cropperProps={{
+                    className: "touch-none",
+                    style: { touchAction: "none" },
+                  }}
+                  mediaProps={{
+                    draggable: false,
+                  }}
                 />
               </div>
               <div className="flex flex-col gap-2">
-                <label className="flex items-center gap-3 text-xs text-zinc-500">
+                <label className="flex touch-manipulation items-center gap-3 text-xs text-zinc-500">
                   <span className="shrink-0">ซูม</span>
                   <input
                     type="range"
