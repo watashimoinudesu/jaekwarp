@@ -1,5 +1,8 @@
 /** วินาทีต่อรอบบนจอ (ค่า default) — เปลี่ยนได้ด้วย NEXT_PUBLIC_DISPLAY_ITEM_SECONDS */
-export const DEFAULT_DISPLAY_ITEM_SECONDS = 30;
+export const DEFAULT_DISPLAY_ITEM_SECONDS = 60;
+
+/** ช่วงเวลาโหลดซ้ำเมื่อคิวว่าง (รอรายการใหม่) — ms */
+export const EMPTY_QUEUE_POLL_MS = 4000;
 
 export function getDisplayItemMs(): number {
   const raw = process.env.NEXT_PUBLIC_DISPLAY_ITEM_SECONDS;

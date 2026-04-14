@@ -5,6 +5,10 @@ import axios from "axios";
 
 import { SocialIcon } from "@/components/SocialIcon";
 import {
+  EMPTY_QUEUE_POLL_MS,
+  getDisplayItemMs,
+} from "@/lib/display-config";
+import {
   SOCIAL_LABEL,
   isSocialPlatform,
   socialProfileUrl,
@@ -43,9 +47,9 @@ export default function DisplayPage() {
   const [item, setItem] = useState<Upload | null>(null);
   const [ready, setReady] = useState(false);
 
+  /** โหลดครั้งแรก — ไม่เริ่มนับเวลาเลื่อนคิวจนกว่าจะมี item */
   useEffect(() => {
     let cancelled = false;
-    let advanceTimer: ReturnType<typeof setInterval> | undefined;
 
     async function setup() {
       try {
@@ -53,26 +57,11 @@ export default function DisplayPage() {
         if (cancelled) return;
 
         const row = (res.data.data?.[0] as Upload | undefined) ?? null;
-        const intervalMs =
-          typeof res.data.intervalMs === "number"
-            ? res.data.intervalMs
-            : 30_000;
-
         setItem(row);
-        setReady(true);
-
-        advanceTimer = setInterval(async () => {
-          try {
-            const adv = await axios.post("/api/display");
-            const next = (adv.data.data?.[0] as Upload | undefined) ?? null;
-            setItem(next);
-          } catch (err) {
-            console.error("Advance error:", err);
-          }
-        }, intervalMs);
       } catch (err) {
         console.error("Fetch error:", err);
-        setReady(true);
+      } finally {
+        if (!cancelled) setReady(true);
       }
     }
 
@@ -80,9 +69,48 @@ export default function DisplayPage() {
 
     return () => {
       cancelled = true;
-      if (advanceTimer) clearInterval(advanceTimer);
     };
   }, []);
+
+  /**
+   * ครบ 1 รอบ (เช่น 1 นาที) ต่อรายการ นับจากตอนที่รายการนี้ขึ้นจอ — แล้วค่อย POST เลื่อนคิว
+   * ไม่ใช้ setInterval ตั้งแต่โหลดหน้า เพื่อไม่ให้รายการแรกหลังคิวว่างถูกตัดเวลา
+   */
+  useEffect(() => {
+    if (!ready || !item) return;
+
+    const durationMs = getDisplayItemMs();
+    const id = window.setTimeout(async () => {
+      try {
+        const adv = await axios.post("/api/display");
+        const next = (adv.data.data?.[0] as Upload | undefined) ?? null;
+        setItem(next);
+      } catch (err) {
+        console.error("Advance error:", err);
+      }
+    }, durationMs);
+
+    return () => clearTimeout(id);
+  }, [ready, item?.id]);
+
+  /** คิวว่าง: poll GET — พอมี pending จะถูก promote แล้วแสดง; รายการถัดไปรอจนครบรอบด้านบน */
+  useEffect(() => {
+    if (!ready || item) return;
+
+    async function pollQueue() {
+      try {
+        const res = await axios.get("/api/display");
+        const row = (res.data.data?.[0] as Upload | undefined) ?? null;
+        if (row) setItem(row);
+      } catch (err) {
+        console.error("Queue poll error:", err);
+      }
+    }
+
+    void pollQueue();
+    const id = setInterval(pollQueue, EMPTY_QUEUE_POLL_MS);
+    return () => clearInterval(id);
+  }, [ready, item]);
 
   if (!ready) {
     return (
