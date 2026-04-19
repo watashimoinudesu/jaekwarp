@@ -15,10 +15,10 @@ export default function Home() {
 
       <div className="relative z-10 flex min-h-screen flex-col items-center justify-center gap-14 px-6">
         <h1 className="animate-pulse bg-linear-to-br from-fuchsia-200 via-violet-100 to-cyan-300 bg-clip-text text-center text-5xl font-extrabold tracking-tight text-transparent drop-shadow-glow sm:text-7xl md:text-8xl">
-          #ใครโสดโปรโมตด้วย
+          #แจกวาร์ปขึ้นจอ
         </h1>
         <h1 className="animate-pulse bg-linear-to-br from-fuchsia-200 via-violet-100 to-cyan-300 bg-clip-text text-center text-5xl font-extrabold tracking-tight text-transparent drop-shadow-glow sm:text-7xl md:text-4xl">
-          PopPrince eiei
+          xxx
         </h1>
 
         <Link

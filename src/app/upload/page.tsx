@@ -12,7 +12,7 @@ import {
   SOCIAL_LABEL,
   SOCIAL_PLACEHOLDER,
   SOCIAL_PLATFORMS,
-  sanitizeLatinHandle,
+  sanitizeSocialHandle,
   type SocialPlatform,
 } from "@/lib/social";
 
@@ -151,7 +151,7 @@ export default function UploadPage() {
                 จำกัดความสูงตามจอ (dvh) — ถ้าใช้แค่ aspect + w-full บนมือถือกล่องจะสูงเกินจอ ลากครอบไม่ได้ / เลื่อนชนเบราว์เซอร์
               */}
               <div
-                className="relative mx-auto w-full max-w-full select-none overflow-hidden rounded-xl bg-zinc-900 [-webkit-touch-callout:none]"
+                className="relative mx-auto w-full max-w-full touch-none select-none overflow-hidden rounded-xl bg-zinc-900 [-webkit-touch-callout:none]"
                 style={{
                   height: "min(72dvh, 560px)",
                   width: "min(100%, calc(min(72dvh, 560px) * 9 / 16))",
@@ -163,14 +163,10 @@ export default function UploadPage() {
                   zoom={zoom}
                   aspect={CROP_ASPECT}
                   cropShape="rect"
-                  showGrid={false}
+                  showGrid
                   onCropChange={setCrop}
                   onZoomChange={setZoom}
                   onCropComplete={onCropComplete}
-                  cropperProps={{
-                    className: "touch-none",
-                    style: { touchAction: "none" },
-                  }}
                   mediaProps={{
                     draggable: false,
                   }}
@@ -290,7 +286,9 @@ export default function UploadPage() {
               <input
                 type="text"
                 name="social_handle"
-                lang="en"
+                {...(socialPlatform === "facebook"
+                  ? {}
+                  : { lang: "en" })}
                 inputMode="text"
                 autoCapitalize="off"
                 autoComplete="off"
@@ -299,7 +297,9 @@ export default function UploadPage() {
                 placeholder={SOCIAL_PLACEHOLDER[socialPlatform]}
                 value={socialHandle}
                 onChange={(e) =>
-                  setSocialHandle(sanitizeLatinHandle(e.target.value))
+                  setSocialHandle(
+                    sanitizeSocialHandle(socialPlatform, e.target.value)
+                  )
                 }
                 className="min-w-0 flex-1 bg-transparent text-zinc-100 placeholder:text-zinc-500 focus:outline-none"
               />

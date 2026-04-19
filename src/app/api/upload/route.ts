@@ -5,7 +5,7 @@ import { CAPTION_MAX_CHARS } from "@/lib/caption";
 import { ensureCurrentShowing } from "@/lib/display-queue-server";
 import {
   isSocialPlatform,
-  sanitizeLatinHandle,
+  sanitizeSocialHandle,
   type SocialPlatform,
 } from "@/lib/social";
 
@@ -18,12 +18,15 @@ export async function POST(req: Request) {
     const captionRaw = formData.get("caption") as string | null;
     const caption = (captionRaw ?? "").slice(0, CAPTION_MAX_CHARS);
     const handleRaw = formData.get("social_handle") as string | null;
-    const socialHandle = sanitizeLatinHandle(handleRaw ?? "");
     const platformRaw = formData.get("social_platform") as string | null;
 
     let socialPlatform: SocialPlatform | null = null;
-    if (socialHandle && platformRaw && isSocialPlatform(platformRaw)) {
-      socialPlatform = platformRaw;
+    let socialHandle = "";
+    if (platformRaw && isSocialPlatform(platformRaw)) {
+      socialHandle = sanitizeSocialHandle(platformRaw, handleRaw ?? "");
+      if (socialHandle) {
+        socialPlatform = platformRaw;
+      }
     }
 
     const igUsernameForLegacy =

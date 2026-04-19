@@ -25,6 +25,27 @@ export function sanitizeLatinHandle(raw: string): string {
   return raw.replace(/[^a-zA-Z0-9._~-]/g, "").slice(0, HANDLE_MAX);
 }
 
+/** Facebook: รองรับชื่อ/ตัวอักษรภาษาใดก็ได้ (จำกัดความยาวและอักขระที่ทำให้ path URL พัง) */
+export function sanitizeFacebookHandle(raw: string): string {
+  const t = raw
+    .replace(/\0/g, "")
+    .replace(/[\u0001-\u001F\u007F]/g, "")
+    .replace(/[/\\]/g, "")
+    .trim()
+    .slice(0, HANDLE_MAX);
+  return t;
+}
+
+export function sanitizeSocialHandle(
+  platform: SocialPlatform,
+  raw: string
+): string {
+  if (platform === "facebook") {
+    return sanitizeFacebookHandle(raw);
+  }
+  return sanitizeLatinHandle(raw);
+}
+
 export function socialProfileUrl(
   platform: SocialPlatform,
   handle: string
